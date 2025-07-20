@@ -28,7 +28,7 @@ def load_steam_guard(steam_guard: str) -> dict[str, str]:
             except KeyError:
                 steam_id = json_data["steam_id"]
             return {
-                "steamid": steam_id,
+                "steamid": str(steam_id),
                 "shared_secret": json_data["shared_secret"],
                 "identity_secret": json_data["identity_secret"],
             }
