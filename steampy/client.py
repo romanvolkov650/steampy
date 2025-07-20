@@ -245,7 +245,7 @@ class SteamClient:
         self._api_key = None
 
     @login_required
-    def register_new_api_key(self, domain: str = "test"):
+    def register_new_api_key(self, domain: str = "localhost"):
         self.revoke_api_key()
 
         data = {
