@@ -436,9 +436,12 @@ class SteamClient:
         navigating_back: bool = True,
         include_failed: bool = True,
         include_total: bool = True,
+        use_webtoken: bool = False,
     ) -> dict:
         params = {
-            "key": self._api_key,
+            "key" if not use_webtoken else "access_token": (
+                self._api_key if not use_webtoken else self._access_token
+            ),
             "max_trades": max_trades,
             "start_after_time": start_after_time,
             "start_after_tradeid": start_after_tradeid,
