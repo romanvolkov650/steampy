@@ -10,3 +10,5 @@ dist
 debug.*
 deploy.sh
 secrets
+test.py
+cookies
