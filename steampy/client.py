@@ -145,6 +145,7 @@ class SteamClient:
             self._password = password
 
         if self.was_login_executed and self.is_session_alive():
+            self._access_token = self._set_access_token()
             return  # Session is alive, no need to login again
 
         self._session.cookies.set("steamRememberLogin", "true")
@@ -216,6 +217,18 @@ class SteamClient:
             raise InvalidCredentials("Invalid API key")
 
         return response
+
+    @login_required
+    def trade_acknowledge(self):
+        referer = f"{SteamUrl.COMMUNITY_URL}/profiles/{self.steam_guard["steamid"]}/tradeoffers"
+        headers = {
+            "Referer": referer,
+            "Origin": str(SteamUrl.COMMUNITY_URL),
+        }
+        data = {"sessionid": self._get_session_id(), "message": 1}
+        return self._session.post(
+            SteamUrl.COMMUNITY_URL / "trade/new/acknowledge", data=data, headers=headers
+        )
 
     @login_required
     def fetch_api_key(self):
