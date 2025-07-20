@@ -28,7 +28,7 @@ class Asset:
 
     def to_dict(self) -> dict:
         return {
-            'appid': int(self.game.app_id),
+            'appid': str(self.game.app_id),
             'contextid': self.game.context_id,
             'amount': self.amount,
             'assetid': self.asset_id,

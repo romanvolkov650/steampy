@@ -357,7 +357,7 @@ class SteamClient:
             'serverid': server_id,
             'partner': partner_steam_id,
             'tradeoffermessage': message,
-            'json_tradeoffer': json.dumps(offer),
+            'json_tradeoffer': json.dumps(offer, separators=(',', ':')),
             'captcha': '',
             'trade_offer_create_params': '{}',
         }
@@ -389,7 +389,7 @@ class SteamClient:
     def _create_offer_dict(items_from_me: list[Asset], items_from_them: list[Asset]) -> dict:
         return {
             'newversion': True,
-            'version': 4,
+            'version': 3,
             'me': {'assets': [asset.to_dict() for asset in items_from_me], 'currency': [], 'ready': False},
             'them': {'assets': [asset.to_dict() for asset in items_from_them], 'currency': [], 'ready': False},
         }
@@ -430,13 +430,13 @@ class SteamClient:
             'serverid': server_id,
             'partner': partner_steam_id,
             'tradeoffermessage': message,
-            'json_tradeoffer': json.dumps(offer),
+            'json_tradeoffer': json.dumps(offer, separators=(',', ':')),
             'captcha': '',
             'trade_offer_create_params': json.dumps(trade_offer_create_params),
         }
 
         headers = {
-            'Referer': f'{SteamUrl.COMMUNITY_URL}{urlparse.urlparse(trade_offer_url).path}',
+            'Referer': f'{SteamUrl.COMMUNITY_URL}/tradeoffer/new/?partner={partner_account_id}',
             'Origin': SteamUrl.COMMUNITY_URL,
         }
 
