@@ -227,7 +227,9 @@ class SteamClient:
         }
         data = {"sessionid": self._get_session_id(), "message": 1}
         return self._session.post(
-            SteamUrl.COMMUNITY_URL / "trade/new/acknowledge", data=data, headers=headers
+            f"{SteamUrl.COMMUNITY_URL}/trade/new/acknowledge",
+            data=data,
+            headers=headers,
         )
 
     @login_required
