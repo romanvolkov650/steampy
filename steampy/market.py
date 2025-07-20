@@ -25,7 +25,7 @@ class SteamMarket:
         self._session_id = None
         self.was_login_executed = False
 
-    def _set_login_executed(self, steamguard: dict, session_id: str) -> None:
+    def set_login_executed(self, steamguard: dict, session_id: str) -> None:
         self._steam_guard = steamguard
         self._session_id = session_id
         self.was_login_executed = True
