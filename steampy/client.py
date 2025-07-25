@@ -99,6 +99,13 @@ class SteamClient:
             self.steam_guard = {"steamid": str(self.get_steam_id())}
         self.market.set_login_executed(self.steam_guard, self._get_session_id())
 
+    def clear_cookies(self):
+        if not os.path.exists(os.path.join("cookies", self.username + ".pkl")):
+            return
+        os.remove(os.path.join("cookies", self.username + ".pkl"))
+        self.was_login_executed = False
+        self._session.cookies.clear()
+
     @login_required
     def get_steam_id(self) -> int:
         url = SteamUrl.COMMUNITY_URL
