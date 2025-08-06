@@ -671,6 +671,14 @@ class SteamClient:
     def get_wallet_balance(
         self, convert_to_decimal: bool = True, on_hold: bool = False
     ) -> str | Decimal:
+        balance_dict = self.get_user_wallet()
+        balance_dict_key = "wallet_delayed_balance" if on_hold else "wallet_balance"
+        if convert_to_decimal:
+            return Decimal(balance_dict[balance_dict_key]) / 100
+        return balance_dict[balance_dict_key]
+
+    @login_required
+    def get_user_wallet(self):
         response = self._session.get(f"{SteamUrl.COMMUNITY_URL}/market")
         wallet_info_match = re.search(r"var g_rgWalletInfo = (.*?);", response.text)
         if wallet_info_match:
@@ -678,10 +686,7 @@ class SteamClient:
             balance_dict = json.loads(balance_dict_str)
         else:
             raise Exception("Unable to get wallet balance string match")
-        balance_dict_key = "wallet_delayed_balance" if on_hold else "wallet_balance"
-        if convert_to_decimal:
-            return Decimal(balance_dict[balance_dict_key]) / 100
-        return balance_dict[balance_dict_key]
+        return balance_dict
 
     def _confirm_api_key_request(self, request_id: str):
         confirmation_executor = ConfirmationExecutor(
