@@ -1,6 +1,6 @@
 import base64
 
-from generated.messages.AddItemsToCart_pb2 import Payload, Items, NavData
+from steampy.generated.messages.AddItemsToCart_pb2 import Payload, Items, NavData
 from requests import Session
 
 from steampy.utils import login_required, create_cookie
