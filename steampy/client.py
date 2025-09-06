@@ -16,6 +16,7 @@ from steampy.exceptions import ApiException, SevenDaysHoldException, TooManyRequ
 from steampy.login import InvalidCredentials, LoginExecutor
 from steampy.market import SteamMarket
 from steampy.models import Asset, GameOptions, SteamUrl, TradeOfferState
+from steampy.store import SteamStore
 from steampy.utils import (
     account_id_to_steam_id,
     get_description_key,
@@ -57,6 +58,7 @@ class SteamClient:
         self.username = username
         self._password = password
         self.market = SteamMarket(self._session)
+        self.store = SteamStore(self._session)
         self._access_token = None
         self._steam_id = None
 
@@ -109,6 +111,10 @@ class SteamClient:
         if self.steam_guard is None:
             self.steam_guard = {"steamid": str(self._steam_id())}
         self.market.set_login_executed(self.steam_guard, self._get_session_id())
+        self.store.set_steam_guard(self.steam_guard)
+        self.store.set_session_id(
+            cookies.get("sessionid", domain="store.steampowered.com")
+        )
 
     def clear_cookies(self):
         if not os.path.exists(os.path.join("cookies", self.username + ".pkl")):
@@ -164,6 +170,7 @@ class SteamClient:
 
         if self.was_login_executed and self.is_session_alive():
             self._access_token = self._set_access_token()
+            self.store.set_access_token(self._access_token)
             return  # Session is alive, no need to login again
 
         self._session.cookies.set("steamRememberLogin", "true")
@@ -175,7 +182,11 @@ class SteamClient:
         ).login()
         self.was_login_executed = True
         self.market.set_login_executed(self.steam_guard, self._get_session_id())
+        self.store.set_session_id(
+            self._session.cookies.get("sessionid", domain="store.steampowered.com")
+        )
         self._access_token = self._set_access_token()
+        self.store.set_access_token(self._access_token)
 
     def _set_access_token(self) -> str:
         steam_login_secure_cookies = [
@@ -345,9 +356,9 @@ class SteamClient:
         )
 
     def _get_session_id(self) -> str:
-        return self._session.cookies.get_dict(
-            domain="steamcommunity.com", path="/"
-        ).get("sessionid")
+        return self._session.cookies.get(
+            name="sessionid", domain="steamcommunity.com", path="/"
+        )
 
     def get_trade_offers_summary(self) -> dict:
         params = {"key": self._api_key}
