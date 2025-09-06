@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package cart;
+
+message Payload {
+    string country = 1;
+    Items items = 2;
+    NavData nav_data = 3;
+}
+
+message Items {
+    uint32 packageid = 1;
+}
+
+message NavData {
+    optional string domain = 1;
+    optional string controller = 2;
+    optional string method = 3;
+    optional string sub_method = 4;
+    optional string feature = 5;
+    optional uint32 depth = 6;
+    optional string country_code = 7;
+    optional uint64 web_key = 8;
+    optional uint32 is_client = 9;
+    optional string curator_data = 10;
+    optional uint32 is_likely_bot = 11;
+    optional uint32 is_utm = 12;
+}
