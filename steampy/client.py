@@ -58,9 +58,20 @@ class SteamClient:
         self._password = password
         self.market = SteamMarket(self._session)
         self._access_token = None
+        self._steam_id = None
 
         if load_cookies:
             self.load_cookies()
+
+    @property
+    def steam_id(self):
+        if not self._steam_id:
+            self._steam_id = self.get_steam_id()
+        return self._steam_id
+
+    @property
+    def steam_id_3(self):
+        return self.steam_id - 76561197960265728
 
     def set_proxies(self, proxies: dict) -> dict:
         if not isinstance(proxies, dict):
@@ -96,7 +107,7 @@ class SteamClient:
 
         self.was_login_executed = True
         if self.steam_guard is None:
-            self.steam_guard = {"steamid": str(self.get_steam_id())}
+            self.steam_guard = {"steamid": str(self._steam_id())}
         self.market.set_login_executed(self.steam_guard, self._get_session_id())
 
     def clear_cookies(self):
@@ -695,3 +706,29 @@ class SteamClient:
             self._session,
         )
         confirmation_executor.confirm_api_key_request(request_id)
+
+    @login_required
+    def get_account_data(self):
+        params = {"id": self.steam_id_3}
+        response = self._session.get(
+            f"{SteamUrl.STORE_URL}/dynamicstore/userdata/", params=params
+        ).json()
+        if (
+            response.get("rgWishlist", []) is None
+            or response.get("rgOwnedPackages", []) is None
+            or response.get("rgOwnedApps", []) is None
+            or response.get("rgRecommendedTags", []) is None
+            or response.get("rgIgnoredApps", []) is None
+        ):
+            raise Exception("Malformed response")
+
+        tags = {}
+        for tag in response["rgRecommendedTags"]:
+            tags[tag["tagid"]] = tag["name"]
+        return {
+            "ownedApps": response["rgOwnedApps"],
+            "ownedPackages": response["rgOwnedPackages"],
+            "wishlistedApps": response["rgWishlist"],
+            "ignoredApps": response["rgIgnoredApps"],
+            "tags": tags,
+        }
