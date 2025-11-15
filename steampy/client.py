@@ -12,7 +12,12 @@ import time
 
 from steampy import guard
 from steampy.confirmation import ConfirmationExecutor
-from steampy.exceptions import ApiException, SevenDaysHoldException, TooManyRequests
+from steampy.exceptions import (
+    ApiException,
+    SevenDaysHoldException,
+    TooManyRequests,
+    NoWalletException,
+)
 from steampy.login import InvalidCredentials, LoginExecutor
 from steampy.market import SteamMarket
 from steampy.models import Asset, GameOptions, SteamUrl, TradeOfferState
@@ -702,13 +707,15 @@ class SteamClient:
     @login_required
     def get_user_wallet(self):
         response = self._session.get(f"{SteamUrl.COMMUNITY_URL}/market")
+        if response.status_code != 200:
+            raise Exception("Unable to get wallet balance string match")
         wallet_info_match = re.search(r"var g_rgWalletInfo = (.*?);", response.text)
         if wallet_info_match:
             balance_dict_str = wallet_info_match.group(1)
             balance_dict = json.loads(balance_dict_str)
             return balance_dict
         elif "You do not have a Steam Wallet" in response.text:
-            print("You do not have a Steam Wallet")
+            raise NoWalletException("You do not have a Steam Wallet")
         else:
             raise Exception("Unable to get wallet balance string match")
 

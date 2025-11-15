@@ -28,3 +28,7 @@ class ConfirmationExpected(Exception):
 
 class ProxyConnectionError(Exception):
     pass
+
+
+class NoWalletException(Exception):
+    pass
