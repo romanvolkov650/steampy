@@ -706,9 +706,11 @@ class SteamClient:
         if wallet_info_match:
             balance_dict_str = wallet_info_match.group(1)
             balance_dict = json.loads(balance_dict_str)
+            return balance_dict
+        elif "You do not have a Steam Wallet" in response.text:
+            print("You do not have a Steam Wallet")
         else:
             raise Exception("Unable to get wallet balance string match")
-        return balance_dict
 
     def _confirm_api_key_request(self, request_id: str):
         confirmation_executor = ConfirmationExecutor(
