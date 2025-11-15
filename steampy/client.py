@@ -752,3 +752,55 @@ class SteamClient:
             "ignoredApps": response["rgIgnoredApps"],
             "tags": tags,
         }
+
+    @login_required
+    def redeem_wallet_code(self, code: str):
+        session_id = self._session.cookies.get(
+            name="sessionid", domain="store.steampowered.com"
+        )
+        payload = {
+            "wallet_code": code,
+            "sessionid": session_id,
+        }
+        headers = {
+            "Origin": "https://store.steampowered.com",
+            "Referer": "https://store.steampowered.com/account/redeemwalletcode",
+        }
+        response = self._session.post(
+            "https://store.steampowered.com/account/ajaxredeemwalletcode/",
+            data=payload,
+            headers=headers,
+        )
+        return response.json()["success"] == 2
+
+    @login_required
+    def change_privacy(
+        self,
+        privacy_profile: int = 3,
+        privacy_inventory: int = 3,
+        privacy_inventory_gifts: int = 1,
+        privacy_owned_games: int = 3,
+        privacy_playtime: int = 3,
+        privacy_friends_list: int = 3,
+    ):
+        session_id = self._get_session_id()
+        privacy_dict = {
+            "PrivacyProfile": privacy_profile,
+            "PrivacyInventory": privacy_inventory,
+            "PrivacyInventoryGifts": privacy_inventory_gifts,
+            "PrivacyOwnedGames": privacy_owned_games,
+            "PrivacyPlaytime": privacy_playtime,
+            "PrivacyFriendsList": privacy_friends_list,
+        }
+        payload = {
+            "sessionid": session_id,
+            "Privacy": json.dumps(privacy_dict, separators=(",", ":")),
+            "eCommentPermission": "1",
+        }
+        return (
+            self._session.post(
+                f"https://steamcommunity.com/profiles/{self.steam_id}/ajaxsetprivacy/",
+                data=payload,
+            ).json()["success"]
+            == 1
+        )
