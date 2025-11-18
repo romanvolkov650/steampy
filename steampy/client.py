@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import pickle
+import random
 import re
 import urllib.parse as urlparse
 from decimal import Decimal
@@ -803,4 +804,55 @@ class SteamClient:
                 data=payload,
             ).json()["success"]
             == 1
+        )
+
+    @login_required
+    def change_avatar(self):
+        avatars = self._session.get(
+            "https://steamcommunity.com/actions/GameAvatars/?json=1&l=english"
+        ).json()["rgOtherGames"]
+        avatar_entity = random.choice(avatars)
+        app_id = avatar_entity["appid"]
+        avatar = random.choice(avatar_entity["avatars"])["ordinal"]
+
+        session_id = self._session.cookies.get(
+            name="sessionid", domain="steamcommunity.com"
+        )
+        payload = {"sessionid": session_id, "selectedAvatar": str(avatar), "json": "1"}
+        resp = self._session.post(
+            f"https://steamcommunity.com/ogg/{app_id}/selectAvatar", data=payload
+        ).json()
+        return resp["success"] == 1
+
+    @login_required
+    def change_profile(self, nickname: str, country: str):
+        session_id = self._session.cookies.get(
+            name="sessionid", domain="steamcommunity.com"
+        )
+        payload = {
+            "sessionID": session_id,
+            "type": "profileSave",
+            "weblink_1_title": "",
+            "weblink_1_url": "",
+            "weblink_2_title": "",
+            "weblink_2_url": "",
+            "weblink_3_title": "",
+            "weblink_3_url": "",
+            "personaName": nickname,
+            "real_name": "",
+            "customURL": "",
+            "country": country,
+            "state": "",
+            "city": "",
+            "summary": "",
+            "hide_profile_awards": "0",
+            "json": "1",
+        }
+
+        return (
+            self._session.post(
+                f"https://steamcommunity.com/profiles/{self.steam_id}/edit/",
+                data=payload,
+            ).status_code
+            == 200
         )
