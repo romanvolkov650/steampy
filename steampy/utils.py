@@ -171,7 +171,8 @@ def get_market_listings_from_html(html: str) -> dict:
 
     for node in nodes:
         if 'My sell listings' in node.text:
-            sell_listings_dict = get_sell_listings_from_node(node)
+            sell_listings_from_node = get_sell_listings_from_node(node)
+            sell_listings_dict.update(sell_listings_from_node)
         elif 'My listings awaiting confirmation' in node.text:
             sell_listings_awaiting_conf = get_sell_listings_from_node(node)
             for listing in sell_listings_awaiting_conf.values():
