@@ -119,7 +119,7 @@ class SteamMarket:
                     get_listing_id_to_assets_address_from_html(jresp.get("hovers"))
                 )
                 listings_2 = get_market_sell_listings_from_api(
-                    jresp.get("results_html"), listings.keys()
+                    jresp.get("results_html"), listings["sell_listings"].keys()
                 )
                 listings_2 = merge_items_with_descriptions_from_listing(
                     listings_2,
@@ -143,7 +143,7 @@ class SteamMarket:
                         get_listing_id_to_assets_address_from_html(jresp.get("hovers"))
                     )
                     listings_2 = get_market_sell_listings_from_api(
-                        jresp.get("results_html"), listings.keys()
+                        jresp.get("results_html"), listings["sell_listings"].keys()
                     )
                     listings_2 = merge_items_with_descriptions_from_listing(
                         listings_2,
