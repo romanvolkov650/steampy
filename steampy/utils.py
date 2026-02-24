@@ -213,7 +213,7 @@ def get_market_listings_from_html(html: str) -> dict:
     return {"buy_orders": buy_orders_dict, "sell_listings": sell_listings_dict}
 
 
-def get_sell_listings_from_node(node: Tag, existing_listings: set[int]) -> dict:
+def get_sell_listings_from_node(node: Tag, existing_listings: set[int] = None) -> dict:
     if not existing_listings:
         existing_listings = set()
     sell_listings_raw = node.findAll("div", {"id": re.compile(r"mylisting_\d+")})
