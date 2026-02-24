@@ -214,6 +214,8 @@ def get_market_listings_from_html(html: str) -> dict:
 
 
 def get_sell_listings_from_node(node: Tag, existing_listings: set[int]) -> dict:
+    if not existing_listings:
+        existing_listings = set()
     sell_listings_raw = node.findAll("div", {"id": re.compile(r"mylisting_\d+")})
     sell_listings_dict = {}
 
