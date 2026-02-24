@@ -238,9 +238,11 @@ def get_sell_listings_from_node(node: Tag, existing_listings: set[int] = None) -
     return sell_listings_dict
 
 
-def get_market_sell_listings_from_api(html: str) -> dict:
+def get_market_sell_listings_from_api(
+    html: str, existing_listings: set[int] = None
+) -> dict:
     document = BeautifulSoup(html, "html.parser")
-    sell_listings_dict = get_sell_listings_from_node(document)
+    sell_listings_dict = get_sell_listings_from_node(document, existing_listings)
     return {"sell_listings": sell_listings_dict}
 
 
