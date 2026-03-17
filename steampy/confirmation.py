@@ -93,6 +93,11 @@ class ConfirmationExecutor:
         for confirmation in confirmations:
             self._send_confirmation(confirmation, tag=Tag.CANCEL)
 
+    def confirm_all(self):
+        confirmations = self._get_confirmations()
+        for confirmation in confirmations:
+            self._send_confirmation(confirmation, tag=Tag.ALLOW)
+
     def confirm_api_key_request(self, request_id: str) -> dict:
         confirmations = self._get_confirmations()
         confirmation = self._select_api_key_confirmation(confirmations, request_id)

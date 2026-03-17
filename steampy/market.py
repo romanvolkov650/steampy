@@ -208,8 +208,19 @@ class SteamMarket:
         response = self._session.post(
             f"{SteamUrl.COMMUNITY_URL}/market/createbuyorder/", data, headers=headers
         ).json()
+        success = response["success"]
+        if success == 22 and response["need_confirmation"]:
+            request_id = response["confirmation"]["confirmation_id"]
+            self._confirm_buy_listing(request_id)
+            data.update({"confirmation": request_id})
+            response = self._session.post(
+                f"{SteamUrl.COMMUNITY_URL}/market/createbuyorder/",
+                data,
+                headers=headers,
+            ).json()
+            success = response["success"]
 
-        if (success := response.get("success")) != 1:
+        if success != 1:
             raise ApiException(
                 f"There was a problem creating the order. Are you using the right currency? success: {success}",
             )
@@ -289,3 +300,27 @@ class SteamMarket:
             self._session,
         )
         return con_executor.confirm_sell_listing(asset_id)
+
+    def _confirm_buy_listing(self, request_id: str) -> dict:
+        con_executor = ConfirmationExecutor(
+            self._steam_guard["identity_secret"],
+            self._steam_guard["steamid"],
+            self._session,
+        )
+        return con_executor.confirm_api_key_request(request_id)
+
+    def cancel_all_confirmations(self):
+        con_executor = ConfirmationExecutor(
+            self._steam_guard["identity_secret"],
+            self._steam_guard["steamid"],
+            self._session,
+        )
+        return con_executor.cancel_all()
+
+    def confirm_all_confirmations(self):
+        con_executor = ConfirmationExecutor(
+            self._steam_guard["identity_secret"],
+            self._steam_guard["steamid"],
+            self._session,
+        )
+        return con_executor.confirm_all()
