@@ -8,10 +8,12 @@ import re
 import urllib.parse as urlparse
 from datetime import datetime, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 import requests
 import time
 
+from black import timezone
 from bs4 import BeautifulSoup
 
 from steampy import guard
@@ -366,16 +368,18 @@ class SteamClient:
 
     @login_required
     def get_latest_drop_from_history(self):
+        tz_steam = ZoneInfo("US/Pacific")
+        tz_local = ZoneInfo("Etc/GMT-3")
         url = f"https://steamcommunity.com/profiles/{self.steam_id}/inventoryhistory/"
 
         def get_wednesday_range():
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
 
             # Найти текущую (или прошедшую) среду
             days_since_wednesday = (now.weekday() - 2) % 7  # 2 = среда
             current_wednesday = now - timedelta(days=days_since_wednesday)
 
-            start = current_wednesday.replace(hour=3, minute=0, second=0, microsecond=0)
+            start = current_wednesday.replace(hour=1, minute=0, second=0, microsecond=0)
             end = start + timedelta(days=7) - timedelta(minutes=1)
 
             return start, end
@@ -393,7 +397,9 @@ class SteamClient:
             ts = date_div.find("div", class_="tradehistory_timestamp").text
             date = date_div.text.replace(ts, "").strip() + " " + ts
             dt = datetime.strptime(date, "%d %b, %Y %I:%M%p")
-            if not (start < dt < end):
+            dt = dt.replace(tzinfo=tz_steam)
+            dt_local = dt.astimezone(tz_local)
+            if dt_local < start:
                 continue
 
             description = row.find(
