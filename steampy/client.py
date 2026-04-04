@@ -6,10 +6,13 @@ import pickle
 import random
 import re
 import urllib.parse as urlparse
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import requests
 import time
+
+from bs4 import BeautifulSoup
 
 from steampy import guard
 from steampy.confirmation import ConfirmationExecutor
@@ -360,6 +363,53 @@ class SteamClient:
             if merge
             else response_dict
         )
+
+    @login_required
+    def get_latest_drop_from_history(self):
+        url = f"https://steamcommunity.com/profiles/{self.steam_id}/inventoryhistory/"
+
+        def get_wednesday_range():
+            now = datetime.now()
+
+            # Найти текущую (или прошедшую) среду
+            days_since_wednesday = (now.weekday() - 2) % 7  # 2 = среда
+            current_wednesday = now - timedelta(days=days_since_wednesday)
+
+            start = current_wednesday.replace(hour=3, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=7) - timedelta(minutes=1)
+
+            return start, end
+
+        start, end = get_wednesday_range()
+        response = self._session.get(url)
+        history = []
+        if response.status_code != 200:
+            return history
+        soup = BeautifulSoup(response.text, "html.parser")
+        history_table = soup.find("div", id="inventory_history_table")
+        rows = history_table.find_all(class_="tradehistoryrow")
+        for row in rows:
+            date_div = row.find("div", class_="tradehistory_date")
+            ts = date_div.find("div", class_="tradehistory_timestamp").text
+            date = date_div.text.replace(ts, "").strip() + " " + ts
+            dt = datetime.strptime(date, "%d %b, %Y %I:%M%p")
+            if not (start < dt < end):
+                continue
+
+            description = row.find(
+                "div", class_="tradehistory_event_description"
+            ).text.strip()
+
+            items = row.find(class_="tradehistory_items").find_all("span")
+            if description == "Earned a new rank and got a drop":
+                for item in items:
+                    history.append(
+                        {
+                            "market_name": item.text,
+                            "date": int(dt.timestamp()),
+                        }
+                    )
+        return history
 
     def _get_session_id(self) -> str:
         return self._session.cookies.get(
