@@ -1,8 +1,10 @@
 import base64
+from urllib.parse import urlparse, parse_qs
 
-from steampy.generated.messages.AddItemsToCart_pb2 import Payload, Items, NavData
+from bs4 import BeautifulSoup
 from requests import Session
 
+from steampy.generated.messages.AddItemsToCart_pb2 import Payload, Items, NavData
 from steampy.utils import login_required, create_cookie
 
 
@@ -194,3 +196,26 @@ class SteamStore:
             headers=headers,
         )
         return response.json()["success"] == 1
+
+    def buy_tf2_extender(self):
+        response = self._session.get("https://store.steampowered.com/buyitem/440/5050")
+        ref_url = response.url
+        soap = BeautifulSoup(response.content, "html.parser")
+        form = soap.find(id="form_authtxn")
+        inputs = form.find_all("input")
+        url = form.get("action")
+        data = dict()
+        for inp in inputs:
+            name = inp.get("name")
+            value = inp.get("value", "")
+            if name:
+                data[name] = value
+        data["approved"] = "1"
+        response = self._session.post(url, data=data, headers={"Referer": ref_url})
+        parsed = urlparse(response.url)
+        params = parse_qs(parsed.query)
+
+        purchase_msg = params.get("purchasemsg", [None])[0]
+        if not purchase_msg:
+            return False
+        return purchase_msg.startswith("Your purchase is complete!")
