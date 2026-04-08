@@ -6,14 +6,13 @@ import pickle
 import random
 import re
 import urllib.parse as urlparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 import requests
 import time
 
-from black import timezone
 from bs4 import BeautifulSoup
 
 from steampy import guard
